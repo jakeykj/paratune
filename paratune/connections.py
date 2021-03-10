@@ -96,7 +96,7 @@ class SSHConnection(object):
             ssh_port = 22
         pkey = paramiko.RSAKey.from_private_key_file(ssh_key_file)
         self.__ssh_client = paramiko.SSHClient()
-        self.__ssh_client.load_system_host_keys()
+        # self.__ssh_client.load_system_host_keys()
         self.__ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         self.__ssh_client.connect(hostname=ssh_address, port=ssh_port, username=username, pkey=pkey)
         self.__ssh_host = ssh_address
