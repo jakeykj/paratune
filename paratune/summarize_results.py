@@ -1,7 +1,11 @@
 import os
 import csv
 import zlib
-import pickle5
+
+try:
+    import pickle5 as pickle
+except:
+    import pickle
 
 from uuid import uuid4
 from redis import Redis
@@ -15,7 +19,7 @@ def summarize_results(redis_host, redis_port, redis_password, job_name):
     all_results = []
     for key in redis.scan_iter("rq:job:%s:*" % job_name):
         rq_res = redis.hgetall(key)
-        args = pickle5.loads(zlib.decompress(rq_res[b'data']))
+        args = pickle.loads(zlib.decompress(rq_res[b'data']))
         if rq_res[b'status'] == b'failed':
             print('Failed job:')
             print(args)
@@ -24,19 +28,23 @@ def summarize_results(redis_host, redis_port, redis_password, job_name):
             continue
         res_dict = args[2][0]
         if b'result' in rq_res.keys():
-            result = pickle5.loads(rq_res[b'result'])
+            result = pickle.loads(rq_res[b'result'])
             if isinstance(result, dict):
                 res_dict.update(result)
             else:
                 res_dict['result'] = result
             all_results.append(res_dict)
 
-    with open('%s_summaries.csv' % job_name, 'w') as f:
-        writer = csv.DictWriter(f, fieldnames=list(all_results[0].keys()))
-        writer.writeheader()
-        for data in all_results:
-            writer.writerow(data)
-    print('Results saved to %s_summaries.csv' % job_name)
+    if len(all_results) == 0:
+        print('No records found.')
+    else:
+        print('%d results fetched.' % len(all_results))
+        with open('%s_summaries.csv' % job_name, 'w') as f:
+            writer = csv.DictWriter(f, fieldnames=list(all_results[0].keys()))
+            writer.writeheader()
+            for data in all_results:
+                writer.writerow(data)
+        print('Results saved to %s_summaries.csv' % job_name)
 
 
 def clear_queue_and_jobs(redis_host, redis_port, redis_password, job_name):
