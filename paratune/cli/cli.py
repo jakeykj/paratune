@@ -105,12 +105,12 @@ def remoteworker(**options):
 
 @main.command()
 @common_params
-@click.argument('jobs', type=str)
+@click.argument('job_name', type=str)
 def summarize(**options):
     project_settings = load_config(options['config'])
-    job_options, job_name = parse_job_configs(options)
+    # job_options, job_name = parse_job_configs(options)
     summarize_results(project_settings['REDIS_HOST'], project_settings['REDIS_PORT'], project_settings['REDIS_PASSWORD'], 
-                      job_name)
+                      options['job_name'])
 
 
 @main.command()
